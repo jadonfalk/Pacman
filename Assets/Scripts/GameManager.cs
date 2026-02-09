@@ -11,6 +11,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject gameOverScreen;
     [SerializeField] private Button startButton;
     [SerializeField] private Button restartButton;
+    [SerializeField] private GameObject pauseScreen;
+    [SerializeField] private TMP_InputField nameInputField;
+    [SerializeField] private TextMeshProUGUI[] highScoreTexts; // Size 5 in inspector
+
+    private const int maxHighScores = 5;
+    private string[] highScoreNames = new string[maxHighScores];
+    private int[] highScoreValues = new int[maxHighScores];
+
+    private bool isPaused = false;
 
     // Array of Ghosts
     public Ghost[] ghosts;
@@ -60,6 +69,9 @@ public class GameManager : MonoBehaviour
         if (restartButton != null) { 
             restartButton.onClick.AddListener(NewGame);
         }
+
+        LoadHighScores();
+        UpdateHighScoreUI();
     }
 
     // Called every frame the game is running by unity automatically
@@ -70,6 +82,124 @@ public class GameManager : MonoBehaviour
         {
             NewGame();
         }*/
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (!isPaused)
+            {
+                PauseGame();
+            }
+            else
+            {
+                ResumeGame();
+            }
+        }
+    }
+    
+    public void SubmitHighScore(string _)
+    {
+        SubmitHighScore();
+    }
+
+    public void SubmitHighScore()
+    {
+        string playerName = nameInputField.text; 
+
+        if (string.IsNullOrWhiteSpace(playerName)) { playerName = "PLAYER"; }
+
+        TryInsertHighScore(playerName, score);
+
+        SaveHighScores();
+        UpdateHighScoreUI();
+
+        nameInputField.gameObject.SetActive(false);
+    }
+
+    private void TryInsertHighScore(string playerName, int newScore)
+    {
+        for (int i = 0; i < maxHighScores; i++)
+        {
+            if (newScore > highScoreValues[i])
+            {
+                // Shift down
+                for (int j = maxHighScores - 1; j > i; j--)
+                {
+                    highScoreValues[j] = highScoreValues[j - 1];
+                    highScoreNames[j] = highScoreNames[j - 1];
+                }
+
+                highScoreValues[i] = newScore;
+                highScoreNames[i] = playerName;
+                break;
+            }
+        }
+    }
+
+    private void LoadHighScores()
+    {
+        for (int i = 0; i < maxHighScores; i++)
+        {
+            highScoreNames[i] = PlayerPrefs.GetString($"HS_Name{i}", "---");
+            highScoreValues[i] = PlayerPrefs.GetInt($"HS_Value{i}", 0);
+        }
+    }
+
+    private void SaveHighScores()
+    {
+        for (int i = 0; i < maxHighScores; i++)
+        {
+            PlayerPrefs.SetString($"HS_Name_{i}", highScoreNames[i]);
+            PlayerPrefs.SetInt($"HS_Value_{i}", highScoreValues[i]);
+        }
+        PlayerPrefs.Save();
+    }
+
+    private void UpdateHighScoreUI()
+    {
+        for (int i = 0; i < highScoreTexts.Length; i++)
+        {
+            highScoreTexts[i].text = $"{i + 1}. {highScoreNames[i]} - {highScoreValues[i]}";
+        }
+    }
+
+    private void PauseGame()
+    {
+        isPaused = true;
+
+        // Show pause screen
+        if (pauseScreen != null) {  pauseScreen.SetActive(true); }
+
+        // Disable ghost movement
+        foreach (var ghost in ghosts)
+        { 
+            if (ghost != null && ghost.movement != null) { ghost.movement.enabled = false; } 
+        }
+
+        // Disable Pacman Movement
+        if (Pacman != null) { Pacman.movement.enabled = false; }
+
+        // Stop physics updates
+        Time.timeScale = 0f;
+    }
+
+    private void ResumeGame()
+    {
+        isPaused = false;
+
+        // Hide pause screen
+        if (pauseScreen != null) { pauseScreen.SetActive(false); }
+
+        // Enable pacman Movement
+        if (Pacman != null) { Pacman.movement.enabled = true; }
+
+        // Enable ghost movement
+        foreach (var ghost in ghosts)
+        {
+            if (ghost != null && ghost.movement != null) { ghost.movement.enabled = true; }
+        }
+
+        // Resume physics updates
+        Time.timeScale = 1f;
     }
 
     private void NewGame()
@@ -124,6 +254,16 @@ public class GameManager : MonoBehaviour
         if (gameOverScreen != null)
         {
             gameOverScreen.SetActive(true);
+        }
+
+        if (score > highScoreValues[maxHighScores - 1])
+        {
+            if (nameInputField != null)
+            {
+                nameInputField.gameObject.SetActive(true);
+                nameInputField.text = "";
+                nameInputField.ActivateInputField();
+            }
         }
     }
 
