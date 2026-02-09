@@ -1,7 +1,17 @@
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
+    [Header("UI Elements")]
+    [SerializeField] private TextMeshProUGUI scoreText;
+    [SerializeField] private TextMeshProUGUI livesText;
+    [SerializeField] private GameObject startScreen;
+    [SerializeField] private GameObject gameOverScreen;
+    [SerializeField] private Button startButton;
+    [SerializeField] private Button restartButton;
+
     // Array of Ghosts
     public Ghost[] ghosts;
 
@@ -19,21 +29,57 @@ public class GameManager : MonoBehaviour
     // Unity calls Start automatically
     private void Start()
     {
-        NewGame();
+        // Show start screen in beginning
+        if (startScreen != null) { startScreen.SetActive(true); }
+        if (gameOverScreen != null) { gameOverScreen.SetActive(false); }
+
+        // Deactivate Pacman and ghosts until the game starts
+        if (Pacman != null) Pacman.gameObject.SetActive(false);
+        if (ghosts != null)
+        {
+            foreach (var ghost in ghosts)
+                ghost.gameObject.SetActive(false);
+        }
+
+        // Hook Start button to begin game
+        if (startButton != null)
+        {
+            startButton.onClick.AddListener(() =>
+            {
+                if (startScreen != null)
+                {
+                    startScreen.SetActive(false);
+                }
+                NewGame(); // Start game only when pressing start
+            });
+        }
+
+        //NewGame();
+
+        // Hook Restart button (game over) to restart
+        if (restartButton != null) { 
+            restartButton.onClick.AddListener(NewGame);
+        }
     }
 
     // Called every frame the game is running by unity automatically
     private void Update()
     {
         // If game is over (lives <= 0) and you press any key, restart game
-        if (this.lives <= 0 && Input.anyKeyDown)
+        /*if (this.lives <= 0 && Input.anyKeyDown)
         {
             NewGame();
-        }
+        }*/
     }
 
     private void NewGame()
     {
+        // Hide Game over screen so restart button disappears on new game
+        if(gameOverScreen != null)
+        {
+            gameOverScreen.SetActive(false);
+        }
+
         // Set score and lives back to default
         SetScore(0);
         SetLives(3);
@@ -57,11 +103,11 @@ public class GameManager : MonoBehaviour
         ResetGhostMultiplier();
         for (int i = 0; i < this.ghosts.Length; i++)
         {
-            this.ghosts[i].gameObject.SetActive(true);
+            this.ghosts[i].ResetState();
         }
 
         // Set Pacman Active too
-        this.Pacman.gameObject.SetActive(true);
+        this.Pacman.ResetState();
     }
 
     private void GameOver()
@@ -73,16 +119,28 @@ public class GameManager : MonoBehaviour
         }
 
         this.Pacman.gameObject.SetActive(false);
+
+        // Show Game over screen
+        if (gameOverScreen != null)
+        {
+            gameOverScreen.SetActive(true);
+        }
     }
 
     private void SetScore(int score)
     {
         this.score = score;
+
+        // Update UI
+        if (scoreText != null) { scoreText.text = "Score: " + this.score; }
     }
 
     private void SetLives(int lives)
     {
         this.lives = lives;
+
+        // Update UI
+        if (livesText != null) { livesText.text = "Lives: " + this.lives; }
     }
 
     // Public functions for GhostEaten and PacmanEaten because they will be triggered from other scripts
@@ -125,7 +183,11 @@ public class GameManager : MonoBehaviour
 
     public void PowerPelletEaten(PowerPellet pellet)
     {
-        // TO-DO: Change Ghost State make ghosts vulnerable
+        // Change Ghost State make ghosts vulnerable
+        for(int i = 0; i < this.ghosts.Length; i++)
+        {
+            this.ghosts[i].frightened.Enable(pellet.duration);
+        }
 
         // Anything that should happen when you eat a normal pellet should happen when you eat a normal pellet, so:
         PelletEaten(pellet);
