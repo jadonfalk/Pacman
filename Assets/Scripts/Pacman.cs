@@ -23,10 +23,11 @@ public class Pacman : MonoBehaviour
             this.movement.SetDirection(Vector2.right);
         }
 
+        /*
         // Angle of movement direction you're going in
         float angle = Mathf.Atan2(this.movement.direction.y, this.movement.direction.x);
         // Assign angle to rotation
-        this.transform.rotation = Quaternion.AngleAxis(angle * Mathf.Rad2Deg, Vector3.forward); 
+        this.transform.rotation = Quaternion.AngleAxis(angle * Mathf.Rad2Deg, Vector3.forward); */
     }
 
     public void ResetState()

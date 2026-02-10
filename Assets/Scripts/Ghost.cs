@@ -30,6 +30,7 @@ public class Ghost : MonoBehaviour
     public void ResetState()
     {
         this.gameObject.SetActive(true);
+        if (movement != null) { movement.enabled = true; }
         this.movement.ResetState();
 
         // None of the ghosts will ever start in Frightened Mode or Chase Mode

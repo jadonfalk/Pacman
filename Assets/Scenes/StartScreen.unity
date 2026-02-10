@@ -1096,37 +1096,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1073226923}
   m_CullTransparentMesh: 1
---- !u!1 &1079416902
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1079416903}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1079416903
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1079416902}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1111585779
 GameObject:
   m_ObjectHideFlags: 0
@@ -2196,6 +2165,7 @@ GameObject:
   - component: {fileID: 1781215854}
   - component: {fileID: 1781215853}
   - component: {fileID: 1781215852}
+  - component: {fileID: 1781215855}
   m_Layer: 5
   m_Name: ButtonSTART
   m_TagString: Untagged
@@ -2305,62 +2275,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1781215850}
   m_CullTransparentMesh: 1
---- !u!1 &1823519741
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1823519743}
-  - component: {fileID: 1823519742}
-  m_Layer: 0
-  m_Name: GameManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1823519742
+--- !u!114 &1781215855
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1823519741}
+  m_GameObject: {fileID: 1781215850}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ed9d66ab7486aa04bb5ceb72c516f27a, type: 3}
+  m_Script: {fileID: 11500000, guid: bbf7d436678897144b0fdbfcebc9b4ab, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  scoreText: {fileID: 0}
-  livesText: {fileID: 0}
-  startScreen: {fileID: 0}
-  gameOverScreen: {fileID: 0}
-  startButton: {fileID: 0}
-  restartButton: {fileID: 0}
-  pauseScreen: {fileID: 0}
-  nameInputField: {fileID: 0}
-  highScoreTexts: []
-  ghosts: []
-  Pacman: {fileID: 0}
-  pellets: {fileID: 0}
---- !u!4 &1823519743
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1823519741}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_EditorClassIdentifier: Assembly-CSharp::StartGame
+  startButton: {fileID: 1781215852}
 --- !u!1 &1845658748
 GameObject:
   m_ObjectHideFlags: 0
@@ -2530,8 +2457,6 @@ MonoBehaviour:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1823519743}
-  - {fileID: 1079416903}
   - {fileID: 1111585781}
   - {fileID: 1218189972}
   - {fileID: 199306895}

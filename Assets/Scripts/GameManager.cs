@@ -1,15 +1,15 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI livesText;
-    [SerializeField] private GameObject startScreen;
     [SerializeField] private GameObject gameOverScreen;
-    [SerializeField] private Button startButton;
     [SerializeField] private Button restartButton;
     [SerializeField] private GameObject pauseScreen;
     [SerializeField] private TMP_InputField nameInputField;
@@ -38,8 +38,8 @@ public class GameManager : MonoBehaviour
     // Unity calls Start automatically
     private void Start()
     {
-        // Show start screen in beginning
-        if (startScreen != null) { startScreen.SetActive(true); }
+        /* Show start screen in beginning
+        if (startScreen != null) { startScreen.SetActive(true); }*/
         if (gameOverScreen != null) { gameOverScreen.SetActive(false); }
 
         // Deactivate Pacman and ghosts until the game starts
@@ -50,20 +50,7 @@ public class GameManager : MonoBehaviour
                 ghost.gameObject.SetActive(false);
         }
 
-        // Hook Start button to begin game
-        if (startButton != null)
-        {
-            startButton.onClick.AddListener(() =>
-            {
-                if (startScreen != null)
-                {
-                    startScreen.SetActive(false);
-                }
-                NewGame(); // Start game only when pressing start
-            });
-        }
-
-        //NewGame();
+        NewGame();
 
         // Hook Restart button (game over) to restart
         if (restartButton != null) { 
@@ -77,11 +64,6 @@ public class GameManager : MonoBehaviour
     // Called every frame the game is running by unity automatically
     private void Update()
     {
-        // If game is over (lives <= 0) and you press any key, restart game
-        /*if (this.lives <= 0 && Input.anyKeyDown)
-        {
-            NewGame();
-        }*/
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -95,7 +77,7 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-    
+
     public void SubmitHighScore(string _)
     {
         SubmitHighScore();
@@ -234,6 +216,12 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < this.ghosts.Length; i++)
         {
             this.ghosts[i].ResetState();
+
+            // If movement script disables:
+            if (ghosts[i].movement != null && !ghosts[i].movement.enabled)
+            {
+                ghosts[i].movement.enabled = true;
+            }
         }
 
         // Set Pacman Active too
