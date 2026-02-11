@@ -41,6 +41,7 @@ public class Ghost : MonoBehaviour
 
         if (this.home != initialBehavior) { this.home.Disable(); }
         if (this.initialBehavior != null) { this.initialBehavior.Enable(); }
+        //if (this.initialBehavior == this.home) { this.home.ExitHome(); }
     }
 
     // Collisions, not triggers
@@ -49,8 +50,10 @@ public class Ghost : MonoBehaviour
         if(collision.gameObject.layer == LayerMask.NameToLayer("Pacman"))
         {
             if(this.frightened.enabled) {
+                Debug.Log($"{name} eaten by Pacman while frightened.");
                 FindObjectOfType<GameManager>().GhostEaten(this);
             } else {
+                Debug.Log($"{name} collided with Pacman, calling PacmanEaten.");
                 FindObjectOfType<GameManager>().PacmanEaten();
             }
         }

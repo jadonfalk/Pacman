@@ -32,7 +32,6 @@ public class Movement : MonoBehaviour
         this.direction = this.initialDirection;
         this.nextDirection = Vector2.zero; // Next direction cleared
         this.transform.position = this.startingPosition;
-        // Old Code: this.rigidbody.isKinematic = false;
         this.rigidbody.bodyType = RigidbodyType2D.Dynamic; 
         this.enabled = true;
     }
@@ -55,6 +54,7 @@ public class Movement : MonoBehaviour
 
     public void SetDirection(Vector2 direction, bool forced = false)
     {
+
         if (forced || !Occupied(direction))
         {
             this.direction = direction;

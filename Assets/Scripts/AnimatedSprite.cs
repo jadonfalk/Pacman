@@ -39,6 +39,8 @@ public class AnimatedSprite : MonoBehaviour
             this.animationFrame = 0;
         }
 
+
+
         // Make sure never get index out of bounds exception
         if(this.animationFrame >= 0 && this.animationFrame < this.sprites.Length)
         {

@@ -1,25 +1,20 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
+using System.Linq;
+using UnityEngine.Tilemaps;
 
 public class GameManager : MonoBehaviour
 {
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI livesText;
-    [SerializeField] private GameObject startScreen;
-    [SerializeField] private GameObject gameOverScreen;
-    [SerializeField] private Button startButton;
-    [SerializeField] private Button restartButton;
     [SerializeField] private GameObject pauseScreen;
-    [SerializeField] private TMP_InputField nameInputField;
-    [SerializeField] private TextMeshProUGUI[] highScoreTexts; // Size 5 in inspector
-
-    private const int maxHighScores = 5;
-    private string[] highScoreNames = new string[maxHighScores];
-    private int[] highScoreValues = new int[maxHighScores];
 
     private bool isPaused = false;
+    public static GameManager instance;
+    
 
     // Array of Ghosts
     public Ghost[] ghosts;
@@ -35,13 +30,12 @@ public class GameManager : MonoBehaviour
     public int score { get; private set; }
     public int lives { get; private set; }
 
+    public bool startingNewGame = false;
+
     // Unity calls Start automatically
     private void Start()
     {
-        // Show start screen in beginning
-        if (startScreen != null) { startScreen.SetActive(true); }
-        if (gameOverScreen != null) { gameOverScreen.SetActive(false); }
-
+        /*
         // Deactivate Pacman and ghosts until the game starts
         if (Pacman != null) Pacman.gameObject.SetActive(false);
         if (ghosts != null)
@@ -50,38 +44,13 @@ public class GameManager : MonoBehaviour
                 ghost.gameObject.SetActive(false);
         }
 
-        // Hook Start button to begin game
-        if (startButton != null)
-        {
-            startButton.onClick.AddListener(() =>
-            {
-                if (startScreen != null)
-                {
-                    startScreen.SetActive(false);
-                }
-                NewGame(); // Start game only when pressing start
-            });
-        }
-
-        //NewGame();
-
-        // Hook Restart button (game over) to restart
-        if (restartButton != null) { 
-            restartButton.onClick.AddListener(NewGame);
-        }
-
-        LoadHighScores();
-        UpdateHighScoreUI();
+        NewGame();*/
+        
     }
 
     // Called every frame the game is running by unity automatically
     private void Update()
     {
-        // If game is over (lives <= 0) and you press any key, restart game
-        /*if (this.lives <= 0 && Input.anyKeyDown)
-        {
-            NewGame();
-        }*/
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -95,79 +64,82 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-    
-    public void SubmitHighScore(string _)
+
+    // COPILOT
+    private void Awake()
     {
-        SubmitHighScore();
-    }
-
-    public void SubmitHighScore()
-    {
-        string playerName = nameInputField.text; 
-
-        if (string.IsNullOrWhiteSpace(playerName)) { playerName = "PLAYER"; }
-
-        TryInsertHighScore(playerName, score);
-
-        SaveHighScores();
-        UpdateHighScoreUI();
-
-        nameInputField.gameObject.SetActive(false);
-    }
-
-    private void TryInsertHighScore(string playerName, int newScore)
-    {
-        for (int i = 0; i < maxHighScores; i++)
+        if (instance == null)
         {
-            if (newScore > highScoreValues[i])
-            {
-                // Shift down
-                for (int j = maxHighScores - 1; j > i; j--)
-                {
-                    highScoreValues[j] = highScoreValues[j - 1];
-                    highScoreNames[j] = highScoreNames[j - 1];
-                }
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
 
-                highScoreValues[i] = newScore;
-                highScoreNames[i] = playerName;
-                break;
-            }
+    // COPILOT
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Ignore start screen (index = 0)
+        if (scene.buildIndex == 0) { return; }
+
+        // Re-find pellets, Pacman, ghosts, and UI in the new scene
+        GameObject pelletParent = GameObject.Find("Pellets");
+        if (pelletParent != null)
+        {
+            pellets = pelletParent.transform;
+        }
+
+        Pacman = FindObjectOfType<Pacman>();
+        ghosts = FindObjectsOfType<Ghost>();
+
+        // Reconnect UI
+        scoreText = GameObject.Find("ScoreText")?.GetComponent<TextMeshProUGUI>();
+        livesText = GameObject.Find("LivesText")?.GetComponent<TextMeshProUGUI>();
+
+        pauseScreen = GameObject.Find("PauseScreen");
+
+        // Update UI with current values
+        if (scoreText != null) { scoreText.text = "Score: " + score; }
+        if (livesText != null) { livesText.text = "Lives: " + lives; }
+
+        if (startingNewGame)
+        {
+            NewGame();
+            startingNewGame = false;
+        }
+        else
+        {
+            // Start new round on new map
+            NewRound();
         }
     }
 
-    private void LoadHighScores()
+    private void LoadNextLevel()
     {
-        for (int i = 0; i < maxHighScores; i++)
+        int current = SceneManager.GetActiveScene().buildIndex;
+        
+        if (current == 1)
         {
-            highScoreNames[i] = PlayerPrefs.GetString($"HS_Name{i}", "---");
-            highScoreValues[i] = PlayerPrefs.GetInt($"HS_Value{i}", 0);
+            SceneManager.LoadScene(2);
+        }
+        if (current == 2)
+        {
+            SceneManager.LoadScene(1);
         }
     }
 
-    private void SaveHighScores()
-    {
-        for (int i = 0; i < maxHighScores; i++)
-        {
-            PlayerPrefs.SetString($"HS_Name_{i}", highScoreNames[i]);
-            PlayerPrefs.SetInt($"HS_Value_{i}", highScoreValues[i]);
-        }
-        PlayerPrefs.Save();
-    }
-
-    private void UpdateHighScoreUI()
-    {
-        for (int i = 0; i < highScoreTexts.Length; i++)
-        {
-            highScoreTexts[i].text = $"{i + 1}. {highScoreNames[i]} - {highScoreValues[i]}";
-        }
-    }
 
     private void PauseGame()
     {
         isPaused = true;
 
         // Show pause screen
-        if (pauseScreen != null) {  pauseScreen.SetActive(true); }
+        ShowPanel(pauseScreen);
 
         // Disable ghost movement
         foreach (var ghost in ghosts)
@@ -182,12 +154,10 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0f;
     }
 
-    private void ResumeGame()
+    public void ResumeGame()
     {
         isPaused = false;
-
-        // Hide pause screen
-        if (pauseScreen != null) { pauseScreen.SetActive(false); }
+        HidePanel(pauseScreen);
 
         // Enable pacman Movement
         if (Pacman != null) { Pacman.movement.enabled = true; }
@@ -202,13 +172,35 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
     }
 
+    private void ShowPanel(GameObject panel)
+    {
+        if (panel == null) { return; }
+
+        var cg = panel.GetComponent<CanvasGroup>();
+        if (cg != null)
+        {
+            cg.alpha = 1f;
+            cg.interactable = true;
+            cg.blocksRaycasts = true;
+        }
+    }
+
+    private void HidePanel(GameObject panel)
+    {
+        if (panel == null) { return; }
+
+        var cg = panel.GetComponent<CanvasGroup>();
+        if (cg != null)
+        {
+            cg.alpha = 0f;
+            cg.interactable = false;
+            cg.blocksRaycasts = false;
+        }
+    }
+
     private void NewGame()
     {
-        // Hide Game over screen so restart button disappears on new game
-        if(gameOverScreen != null)
-        {
-            gameOverScreen.SetActive(false);
-        }
+
 
         // Set score and lives back to default
         SetScore(0);
@@ -218,9 +210,16 @@ public class GameManager : MonoBehaviour
 
     private void NewRound()
     {
-        foreach (Transform pellet in this.pellets)
+        // COPILOT
+        if (this.pellets != null)
         {
-            pellet.gameObject.SetActive(true); // Turn them back on
+            foreach (Transform pellet in this.pellets)
+            {
+                if (pellet != null)
+                {
+                    pellet.gameObject.SetActive(true);
+                }
+            }
         }
 
         ResetState();
@@ -237,34 +236,33 @@ public class GameManager : MonoBehaviour
         }
 
         // Set Pacman Active too
-        this.Pacman.ResetState();
+        if (Pacman != null) { this.Pacman.ResetState(); }
     }
 
     private void GameOver()
     {
+        // Play game over sfx
+        AudioManager.instance.PlaySFX(AudioManager.instance.sfxGameOver);
+
+        // Play death animation
+        Pacman.PlayDeathAnimation();
+
         // On Game over, set them to false to deactivate them.
         for (int i = 0; i < this.ghosts.Length; i++)
         {
             this.ghosts[i].gameObject.SetActive(false);
         }
 
-        this.Pacman.gameObject.SetActive(false);
+        //this.Pacman.gameObject.SetActive(false);
 
-        // Show Game over screen
-        if (gameOverScreen != null)
-        {
-            gameOverScreen.SetActive(true);
-        }
+        // Delay scene load so death animation can play
+        Invoke(nameof(LoadEndScreen), 3.0f);
+    }
 
-        if (score > highScoreValues[maxHighScores - 1])
-        {
-            if (nameInputField != null)
-            {
-                nameInputField.gameObject.SetActive(true);
-                nameInputField.text = "";
-                nameInputField.ActivateInputField();
-            }
-        }
+    private void LoadEndScreen()
+    {
+        // Load Game Over Scene
+        SceneManager.LoadScene("EndScreen");
     }
 
     private void SetScore(int score)
@@ -286,6 +284,8 @@ public class GameManager : MonoBehaviour
     // Public functions for GhostEaten and PacmanEaten because they will be triggered from other scripts
     public void GhostEaten(Ghost ghost)
     {
+        // Play sound for ghost being eaten
+        AudioManager.instance.PlaySFX(AudioManager.instance.sfxGhostEaten);
         int points = ghost.points * this.ghostMultiplier; // Calculate points for eating ghost based off base amount * multiplier
         SetScore(this.score + points); // Add score
         this.ghostMultiplier++; // Increment multiplier
@@ -294,10 +294,14 @@ public class GameManager : MonoBehaviour
     public void PacmanEaten()
     {
         // Deactivate Pacman and subtract a life
-        this.Pacman.gameObject.SetActive(false);
+        //this.Pacman.gameObject.SetActive(false);
         SetLives(this.lives - 1);
 
-        if(this.lives > 0)
+        // Play death animation and play death sound
+        Pacman.PlayDeathAnimation();
+        AudioManager.instance.PlaySFX(AudioManager.instance.sfxPacmanDeath);
+
+        if (this.lives > 0)
         {
             // Wait 3 seconds between Pacman dying and resetting state of pacman and ghosts
             Invoke(nameof(ResetState), 3.0f);
@@ -317,7 +321,8 @@ public class GameManager : MonoBehaviour
         if(!HasRemainingPellets())
         {
             this.Pacman.gameObject.SetActive(false); // That way a Ghost can't come and eat you 
-            Invoke(nameof(NewRound), 3.0f);
+            //Invoke(nameof(NewRound), 3.0f);
+            Invoke(nameof(LoadNextLevel), 2.0f); // COPILOT
         }
     }
 
@@ -331,16 +336,21 @@ public class GameManager : MonoBehaviour
 
         // Anything that should happen when you eat a normal pellet should happen when you eat a normal pellet, so:
         PelletEaten(pellet);
+
+        // Play sound for eating power pellet
+        AudioManager.instance.PlaySFX(AudioManager.instance.sfxPowerPellet);
+
         // If you eat another power pellet during the duration of it, reset duration of power mode while keeping ghost multiplier
         CancelInvoke();
         Invoke(nameof(ResetGhostMultiplier), pellet.duration);
-        
 
-        
+        // Switch music to power pellet music
+        AudioManager.instance.PlayPowerPelletMusic();
     }
 
     private bool HasRemainingPellets()
     {
+    
         foreach (Transform pellet in this.pellets)
         {
             if(pellet.gameObject.activeSelf) // Meaning if there are remaining pellets
@@ -350,10 +360,14 @@ public class GameManager : MonoBehaviour
         }
         // Return false if the code makes it through the loop (meaning no pellets left)
         return false; 
+
     }
 
     private void ResetGhostMultiplier()
     {
         this.ghostMultiplier = 1;
+        
+        // Multiplier gets reset when duration is over, so switch back to base music
+        AudioManager.instance.PlayBaseMusic();
     }
 }
