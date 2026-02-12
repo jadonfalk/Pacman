@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d1514134bc4fbd41bb739b1b9a49231, type: 3}
   m_Name: Pellet_Tile
   m_EditorClassIdentifier: Unity.2D.Tilemap.Extras::UnityEngine.RuleTile
-  m_DefaultSprite: {fileID: 0}
+  m_DefaultSprite: {fileID: 8068531906196354090, guid: 408c6e221daed7043970b0752a205f6a, type: 3}
   m_DefaultGameObject: {fileID: 8177318256281781283, guid: aba53f7449785694d869215dbbd117e6, type: 3}
   m_DefaultColliderType: 0
   m_TilingRules: []
